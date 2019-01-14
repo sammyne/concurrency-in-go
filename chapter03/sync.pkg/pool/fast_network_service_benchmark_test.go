@@ -9,6 +9,8 @@ import (
 	"testing"
 )
 
+var daemonStarted2 *sync.WaitGroup
+
 func warmServiceConnCache() *sync.Pool {
 	p := &sync.Pool{
 		New: connectToService,
@@ -18,13 +20,14 @@ func warmServiceConnCache() *sync.Pool {
 	}
 	return p
 }
+
 func startNetworkDaemon2() *sync.WaitGroup {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		connPool := warmServiceConnCache()
 
-		server, err := net.Listen("tcp", "localhost:8081")
+		server, err := net.Listen("tcp", "localhost:8082")
 		if err != nil {
 			log.Fatalf("cannot listen: %v", err)
 		}
@@ -47,13 +50,10 @@ func startNetworkDaemon2() *sync.WaitGroup {
 	return &wg
 }
 
-func BenchmarkNetworkRequexst2(b *testing.B) {
-	daemonStarted := startNetworkDaemon2()
-	daemonStarted.Wait()
-
+func BenchmarkNetworkRequest2(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		conn, err := net.Dial("tcp", "localhost:8081")
+		conn, err := net.Dial("tcp", "localhost:8082")
 		if err != nil {
 			b.Fatalf("cannot dial host: %v", err)
 		}
@@ -62,4 +62,9 @@ func BenchmarkNetworkRequexst2(b *testing.B) {
 		}
 		conn.Close()
 	}
+}
+
+func init() {
+	daemonStarted2 = startNetworkDaemon2()
+	daemonStarted2.Wait()
 }
