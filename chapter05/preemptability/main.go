@@ -33,18 +33,16 @@ func doWork(done <-chan interface{},
 func main() {
 }
 
-func longCalculation(v interface{}) interface{} {
-	time.Sleep(time.Hour)
+func longCalculation(done <-chan interface{}, v interface{}) interface{} {
+	select {
+	case <-time.After(time.Hour):
+	case <-done:
+	}
+
 	return nil
 }
 
 func reallyLongCalculation(done <-chan interface{}, v interface{}) interface{} {
-	intermediateResult := longCalculation(v)
-	select {
-	case <-done:
-		return nil
-	default:
-	}
-
-	return longCalculation(intermediateResult)
+	intermediateResult := longCalculation(done, v)
+	return longCalculation(done, intermediateResult)
 }
