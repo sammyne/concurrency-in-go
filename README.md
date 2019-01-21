@@ -4,3 +4,4 @@
 
 - [x] chapter03: Go's Concurrency Building Blocks
 - [x] chapter04: Concurrency Patterns in Go
+- [x] chapter05: Concurrency at Scale
