@@ -32,6 +32,8 @@ func (l *multiLimiter) Wait(ctx context.Context) error {
 		}
 	}
 	return nil
+
+	//return l.limiters[0].Wait(ctx)
 }
 
 func (l *multiLimiter) Limit() rate.Limit {
