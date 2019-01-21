@@ -3,18 +3,22 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"golang.org/x/time/rate"
 )
 
 func Open() *APIConnection {
+	secondLimit := rate.NewLimiter(Per(2, time.Second), 1)
+	minuteLimit := rate.NewLimiter(Per(10, time.Minute), 10)
+
 	return &APIConnection{
-		rateLimiter: rate.NewLimiter(rate.Limit(1), 1), // <1>
+		rateLimiter: MultiLimiter(secondLimit, minuteLimit),
 	}
 }
 
 type APIConnection struct {
-	rateLimiter *rate.Limiter
+	rateLimiter RateLimiter
 }
 
 func (a *APIConnection) ReadFile(ctx context.Context) error {
