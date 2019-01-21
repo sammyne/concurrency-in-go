@@ -18,7 +18,7 @@ func doWork(done <-chan interface{},
 		}
 
 		// the next line is non-preemptable
-		result := reallyLongCalculation(value)
+		result := reallyLongCalculation(done, value)
 
 		select {
 		case <-done:
@@ -33,8 +33,18 @@ func doWork(done <-chan interface{},
 func main() {
 }
 
-func reallyLongCalculation(v interface{}) interface{} {
+func longCalculation(v interface{}) interface{} {
 	time.Sleep(time.Hour)
-
 	return nil
+}
+
+func reallyLongCalculation(done <-chan interface{}, v interface{}) interface{} {
+	intermediateResult := longCalculation(v)
+	select {
+	case <-done:
+		return nil
+	default:
+	}
+
+	return longCalculation(intermediateResult)
 }
