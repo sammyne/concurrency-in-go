@@ -1,3 +1,5 @@
+// +build without
+
 package main
 
 import "context"
