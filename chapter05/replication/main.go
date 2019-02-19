@@ -16,6 +16,7 @@ func main() {
 	) {
 		started := time.Now()
 		defer wg.Done()
+
 		// Simulate random load
 		simulatedLoadTime := time.Duration(1+rand.Intn(5)) * time.Second
 		select {

@@ -23,7 +23,7 @@ func main() {
 			sendPulse := func() {
 				select {
 				case heartbeat <- struct{}{}:
-				default: // <4>
+				default: // <4>: guard against the fact that no one may be listening to our heartbeat
 				}
 			}
 			sendResult := func(r time.Time) {
@@ -57,7 +57,7 @@ func main() {
 	time.AfterFunc(10*time.Second, func() { close(done) }) // <1>
 
 	const timeout = 2 * time.Second               // <2>
-	heartbeat, results := doWork(done, timeout/2) // <3>
+	heartbeat, results := doWork(done, timeout/2) // <3>: gives our heartbeat an extra tick to respond so that our timeout isn’t too sensitive
 	for {
 		select {
 		case _, ok := <-heartbeat: // <4>

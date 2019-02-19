@@ -18,7 +18,7 @@ func DoWork(
 		defer close(heartbeat)
 		defer close(intStream)
 
-		time.Sleep(2 * time.Second)
+		time.Sleep(2 * time.Second) // <1>: simulate some kind of delay before the goroutine can begin working
 
 		pulse := time.Tick(pulseInterval)
 	numLoop: // <2>

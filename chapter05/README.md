@@ -141,6 +141,44 @@ result := add(1, 2, 3, 4, 5, 6, 7, 8, 9)
 writeTallyToState(result)
 ```
 
-##### dulplicated messages
+##### duplicated messages
 
 - **use case**
+
+![Example of how a duplicate message could occur](./images/example-of-how-a-duplicate-message-could-occur.png)
+
+- **solutions**
+  - Make it vanishingly unlikely that a parent goroutine will send a cancellation signal after a child goroutine has already reported a result
+  - Accept either the first or last result reported
+  - Poll the parent goroutine for permission
+    > heartbeats are more generally useful than this approach
+
+## Heartbeats
+
+- **Motivation**: help concurrent processes signal life to outside parties
+- 2 types 
+  - periodic: occur on a time interval, useful for concurrent code that might be waiting for something else to happen for it to process a unit of work
+  - one-time: occur at the beginning of a unit of work, useful for testing
+- A heartbeat is a way to signal to its listeners that everything is well, and that the silence is expected
+- Periodic heartbeats helps to debug the the unexpected behaviors of goroutines (demo as [`monitor.go`](./heartbeats/monitor.go))
+- For any long-running goroutines, or goroutines that need to be tested, this pattern is highly recommended
+
+## Replicated Requests  
+
+- **Motivation**: For some applications, receiving a response as quickly as possible is the top priority
+- In-memory replication might not be that costly, but if replicating the handlers requires replicating processes, servers, or even data centers, this can become quite costly. The trade-off should be considered seriously
+- A demo go as [replicates a simulated request over 10 handlers](./replication/main.go)
+- The only **caveat** to this approach is that all of your handlers need to have equal opportunity to service the request 
+- A different symptom of the same problem is **uniformity**. You should only replicate out requests like this to handlers that have different runtime conditions: different processes, machines, paths to a data store, or access to different data stores altogether
+
+## Rate Limiting 
+
+- **Motivation**: constrains the number of times some kind of resource is accessed to some finite number per unit of time, to as to prevent entire classes of attack vectors against your system
+- **Problems**
+  - In distributed systems, a legitimate user could degrade the performance of the system for other users if they're performing operations at a high enough volume, or if the code they’re exercising is buggy.
+    > A user's mental model is usually that their access to the system is sandboxed and can neither affect nor be affected by other users' activities
+- Rate limits allow you to reason about the performance and stability of your system by preventing it from falling outside the boundaries you've already investigated.
+- Rate limits helps to protect paying customers from accessing the paid system in a runaway manner, which would means either
+  - the service owner eat the cost and forgive the unintended access, or 
+  - the user is forced to pay the bill, which might sour the relationship permanently
+- Most rate limiting is done by utilizing an algorithm called the **token bucket**: an access token for the resource is granted to utilize a resource. Without the token, your request is denied
