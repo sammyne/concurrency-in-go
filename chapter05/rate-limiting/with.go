@@ -1,4 +1,3 @@
-// +build with
 package main
 
 import (
@@ -7,6 +6,8 @@ import (
 
 	"golang.org/x/time/rate"
 )
+
+//go:generate go run main.go with.go multi_limiter.go per.go
 
 func Open() *APIConnection {
 	return &APIConnection{

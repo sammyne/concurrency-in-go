@@ -26,7 +26,6 @@ type multiLimiter struct {
 
 func (l *multiLimiter) Wait(ctx context.Context) error {
 	for _, l := range l.limiters {
-		// why not just the longest???
 		if err := l.Wait(ctx); err != nil {
 			return err
 		}
@@ -37,5 +36,5 @@ func (l *multiLimiter) Wait(ctx context.Context) error {
 }
 
 func (l *multiLimiter) Limit() rate.Limit {
-	return l.limiters[0].Limit() // <3>
+	return l.limiters[0].Limit() // <3>: the most restrictive limit due to sorting
 }

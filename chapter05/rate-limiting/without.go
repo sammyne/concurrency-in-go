@@ -2,6 +2,8 @@
 
 package main
 
+//go:generate go run main.go without.go
+
 import "context"
 
 func Open() *APIConnection {

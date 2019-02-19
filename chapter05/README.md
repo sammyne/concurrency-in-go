@@ -181,4 +181,73 @@ writeTallyToState(result)
 - Rate limits helps to protect paying customers from accessing the paid system in a runaway manner, which would means either
   - the service owner eat the cost and forgive the unintended access, or 
   - the user is forced to pay the bill, which might sour the relationship permanently
+
+### The Token Bucket Algorithm  
 - Most rate limiting is done by utilizing an algorithm called the **token bucket**: an access token for the resource is granted to utilize a resource. Without the token, your request is denied
+- 2 parameters  
+    - `d`: depth of the bucket, i.e., how many tokens are available for immediate use, a.k.a., **burstiness**
+    - `r`: replenishing rate
+
+
+#### Demo without Rate Limiting  
+An API has two endpoints: one for reading a file, and one for resolving a domain name to an IP address
+
+Demo as command `go generate -tags without`
+
+### The `rate` Package
+
+#### API
+- `Limit` and `NewLimiter`
+
+```go
+// Limit defines the maximum frequency of some events. Limit is
+// represented as number of events per second. A zero Limit allows no
+// events.
+type Limit float64
+
+// NewLimiter returns a new Limiter that allows events up to rate r
+// and permits bursts of at most b tokens.
+func NewLimiter(r Limit, b int) *Limiter
+```
+
+- `Every` 
+```go
+// Every converts a minimum time interval between events to a Limit.
+// Return rate.Inf for zero interval
+func Every(interval time.Duration) Limit
+```
+
+- `Wait`/`WaitN` block requests until were given `1`/`N` access token(s)
+
+```go
+// Wait is shorthand for WaitN(ctx, 1).
+func (lim *Limiter) Wait(ctx context.Context)
+
+// WaitN blocks until lim permits n events to happen.
+// It returns an error if n exceeds the Limiter's burst size, the Context is
+// canceled, or the expected wait time exceeds the Context's Deadline.
+func (lim *Limiter) WaitN(ctx context.Context, n int) (err error)
+```
+
+#### Granularity  
+- Establish multiple tiers of limits
+    - **fine-grained** controls to limit requests per second
+    - **coarse-grained** controls to limit requests per minute, hour, or day
+- Demo as command `go generate`
+
+> The limit is constrained by a sliding window of time as proved by the request #1
+
+#### More 
+the `rate.Limiter` type has a few other tricks up its sleeve for optimizations and different use cases
+
+## Healing Unhealthy Goroutines
+- **Motivation**: a goroutine to become stuck in a bad state from which it cannot recover without external help
+- **Healing**: the processing of restarting the unhealthy goroutines
+
+- **steward**
+    -  the logic that monitors a goroutine's health
+    - responsible for restarting a ward's goroutine by invoking a **ward** maker function should it become unhealthy
+start the goroutine
+- **ward**: the goroutine monitored by **steward**
+
+- 2 demos go as [usage.go](./healing-unhealthy-goroutines/usage.go) and [more.go](./healing-unhealthy-goroutines/more.go)
